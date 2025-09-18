@@ -6,7 +6,7 @@
  *
  */
 
-#include "odometry.h"
+#include "luci_encoder_odometry/odometry.h"
 
 static constexpr float SMALL_ANGLE_THRESHOLD_RAD = 0.01f; // ~0.57 degrees
 

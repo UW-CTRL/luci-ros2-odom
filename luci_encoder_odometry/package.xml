@@ -3,12 +3,20 @@
 <package format="3">
   <name>luci_encoder_odometry</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>This package is for converting and publishing ros2 odom data from luci wheelchair</description>
   <maintainer email="kmsw8001@uw.edu">kysh</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+
+  <depend>rclcpp</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>luci_messages</depend>
+  
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

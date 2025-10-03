@@ -12,13 +12,16 @@
 
 // Define variables
 float meter_conv = 0.0254; // inches to meters
-float wheelDiameter = 13 * meter_conv;
+float wheelDiameter = 13.5 * meter_conv;
 float wheelCircumference = wheelDiameter * M_PI;      // meters
-float wheelBase = 23 * meter_conv;               // meters
+float wheelBase = 22 * meter_conv;               // meters
 float gearRatio = 2.38;               // dimensionless
 float rolloverThreshold = 100.0;       // degrees
 bool rightMotorForwardIncreases = true;
-bool leftMotorForwardIncreases = true;
+bool leftMotorForwardIncreases = false;
+
+    // Odometry is bad, 360 odometry read ~ 150 real life
+
 
 nav_msgs::msg::Odometry createOdomMessage(const Position& pos, const Velocity& vel, const rclcpp::Time& timestamp)
 {
@@ -49,6 +52,36 @@ nav_msgs::msg::Odometry createOdomMessage(const Position& pos, const Velocity& v
 }
 
 
+// void OdometryProcessor::calculateMetersTraveledInFrame(Motor motor)
+// {
+//     this->calculateDegreesTraveledInFrame(motor);
+
+//     auto angleChange = this->getDegreesTraveledInFrame(motor);
+
+//     // Invert angle delta if this motor decreases when moving forward
+//     if (!this->leftMotorForwardIncreases && motor == Motor::LEFT)
+//     {
+//         angleChange = -angleChange;
+//     }
+//     if (!this->rightMotorForwardIncreases && motor == Motor::RIGHT)
+//     {
+//         angleChange = -angleChange;
+//     }
+
+//     // Find number of encoder rotations based on wheel rotations
+//     float encoderRotations = angleChange / THREE_SIXTY;
+//     // Convert encoder rotations to wheel rotations
+//     float wheelRotations = encoderRotations / this->gearRatio;
+
+//     // Convert wheel rotations to meters traveled
+//     float metersTraveled = wheelRotations * this->wheelCircumference;
+
+//     // Accumulate total distance traveled for this motor since startup
+//     this->totalMetersTraveled[motor] += metersTraveled;
+//     this->metersTraveledInFrame[motor] = metersTraveled;
+// }
+
+
 class EncoderToOdomNode : public rclcpp::Node
 {
     public:
@@ -59,7 +92,9 @@ class EncoderToOdomNode : public rclcpp::Node
                 "luci/encoders", 10, std::bind(&EncoderToOdomNode::encoder_callback, this, std::placeholders::_1));
 
             odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
-            
+
+            wheel_rotation_publisher_ = this->create_publisher<std_msgs::msg::Int32>("wheel_rotations", 10);
+
             // TF broadcaster
             tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
         }
@@ -76,6 +111,8 @@ class EncoderToOdomNode : public rclcpp::Node
             Velocity vel = odometry_processor_.getVelocity();
             auto odom_msg = createOdomMessage(pos, vel, now);
             odom_publisher_->publish(odom_msg);
+
+            // Publish wheel rotations
 
             // Broadcast TF
             geometry_msgs::msg::TransformStamped odom_tf;
@@ -96,6 +133,7 @@ class EncoderToOdomNode : public rclcpp::Node
         
 
         rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher_;
+        rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr wheel_rotation_publisher_;
         rclcpp::Subscription<luci_messages::msg::LuciEncoders>::SharedPtr encoder_subscriber_;
         std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
         

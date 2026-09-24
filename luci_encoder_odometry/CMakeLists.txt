@@ -34,3 +34,5 @@ ament_target_dependencies(encoder_to_odom_node
 install(TARGETS
   encoder_to_odom_node
   DESTINATION lib/${PROJECT_NAME})
+
+ament_package()
